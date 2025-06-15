@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boarding Pass | Relog Airlines</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <style>
+        .boarding-pass-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .boarding-pass {
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .passenger-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .info-group {
+            flex: 1;
+            margin-right: 10px;
+        }
+        
+        .info-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .flight-details {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .detail-group {
+            flex-basis: 30%;
+            margin-bottom: 15px;
+        }
+        
+        .detail-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        
+        .detail-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .barcode-container {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #dee2e6;
+        }
+        
+        .pnr {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            #boarding-pass, #boarding-pass * {
+                visibility: visible;
+            }
+            
+            #boarding-pass {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            
+            .btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="https://via.placeholder.com/150x50?text=Relog+Airlines+Logo" alt="Relog Airlines Logo" height="30">
+                Relog Airlines
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/checkin">Web Check-in</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Flight Status</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Contact Us</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div id="content" class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">Check-in Complete</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger" id="error-message" style="display: none;"></div>
+                        
+                        <div class="text-center mb-4">
+                            <div class="spinner-border text-primary" role="status" id="loading-spinner">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p id="loading-text">Generating your boarding pass...</p>
+                        </div>
+                        
+                        <div id="boarding-pass" style="display: none;">
+                            <div class="boarding-pass-container">
+                                <div class="boarding-pass">
+                                    <div class="header">
+                                        <div class="logo">
+                                            <img src="https://via.placeholder.com/100x50?text=RELOG" alt="Relog Airlines Logo">
+                                        </div>
+                                        <div class="flight-info">
+                                            <h2>BOARDING PASS</h2>
+                                            <h3 id="flight-number"></h3>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="passenger-info">
+                                        <div class="info-group">
+                                            <div class="info-label">Passenger</div>
+                                            <div class="info-value" id="passenger-name"></div>
+                                        </div>
+                                        <div class="info-group">
+                                            <div class="info-label">From</div>
+                                            <div class="info-value" id="origin"></div>
+                                        </div>
+                                        <div class="info-group">
+                                            <div class="info-label">To</div>
+                                            <div class="info-value" id="destination"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flight-details">
+                                        <div class="detail-group">
+                                            <div class="detail-label">Date</div>
+                                            <div class="detail-value" id="date"></div>
+                                        </div>
+                                        <div class="detail-group">
+                                            <div class="detail-label">Departure</div>
+                                            <div class="detail-value" id="departure-time"></div>
+                                        </div>
+                                        <div class="detail-group">
+                                            <div class="detail-label">Boarding</div>
+                                            <div class="detail-value" id="boarding-time"></div>
+                                        </div>
+                                        <div class="detail-group">
+                                            <div class="detail-label">Gate</div>
+                                            <div class="detail-value" id="gate"></div>
+                                        </div>
+                                        <div class="detail-group">
+                                            <div class="detail-label">Seat</div>
+                                            <div class="detail-value" id="seat"></div>
+                                        </div>
+                                        <div class="detail-group">
+                                            <div class="detail-label">Class</div>
+                                            <div class="detail-value" id="seat-class"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="barcode-container">
+                                        <div class="barcode" id="barcode"></div>
+                                        <div class="pnr" id="pnr"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center mt-4">
+                                <button class="btn btn-primary me-2" id="print-btn">
+                                    <i class="bi bi-printer"></i> Print Boarding Pass
+                                </button>
+                                <button class="btn btn-secondary" id="email-btn">
+                                    <i class="bi bi-envelope"></i> Email Boarding Pass
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small>Please arrive at the airport at least 2 hours before departure.</small>
+                            <a href="/" class="btn btn-sm btn-outline-primary">Back to Home</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+        <div class="container">
+            <p class="mb-0">© 2025 Relog Airlines. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- JsBarcode -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if PNR is in sessionStorage
+            const pnr = sessionStorage.getItem('pnr');
+            
+            if (!pnr) {
+                window.location.href = '/';
+                return;
+            }
+            
+            // Get boarding pass
+            axios.get(`/api/checkin/boarding-pass/${pnr}`)
+                .then(function(response) {
+                    const boardingPass = response.data;
+                    
+                    // Hide loading spinner
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    document.getElementById('loading-text').style.display = 'none';
+                    
+                    // Show boarding pass
+                    document.getElementById('boarding-pass').style.display = 'block';
+                    
+                    // Fill in boarding pass details
+                    document.getElementById('flight-number').textContent = boardingPass.flightNumber;
+                    document.getElementById('passenger-name').textContent = boardingPass.passengerName;
+                    document.getElementById('origin').textContent = boardingPass.origin;
+                    document.getElementById('destination').textContent = boardingPass.destination;
+                    
+                    // Format date
+                    const departureDate = new Date(boardingPass.departureTime);
+                    document.getElementById('date').textContent = departureDate.toLocaleDateString('en-US', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                    
+                    // Format times
+                    document.getElementById('departure-time').textContent = departureDate.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    document.getElementById('boarding-time').textContent = boardingPass.boardingTime;
+                    
+                    document.getElementById('gate').textContent = boardingPass.gate;
+                    document.getElementById('seat').textContent = boardingPass.seatNumber;
+                    document.getElementById('seat-class').textContent = boardingPass.seatClass;
+                    document.getElementById('pnr').textContent = boardingPass.pnr;
+                    
+                    // Generate barcode
+                    JsBarcode("#barcode", boardingPass.barcode, {
+                        format: "CODE128",
+                        lineColor: "#000",
+                        width: 2,
+                        height: 50,
+                        displayValue: false
+                    });
+                })
+                .catch(function(error) {
+                    // Show error message
+                    const errorMessage = document.getElementById('error-message');
+                    errorMessage.textContent = error.response?.data?.message || 'Failed to load boarding pass. Please try again.';
+                    errorMessage.style.display = 'block';
+                    
+                    // Hide loading spinner
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    document.getElementById('loading-text').style.display = 'none';
+                });
+            
+            // Handle print button
+            document.getElementById('print-btn').addEventListener('click', function() {
+                window.print();
+            });
+            
+            // Handle email button
+            document.getElementById('email-btn').addEventListener('click', function() {
+                alert('Boarding pass has been sent to your email.');
+            });
+        });
+    </script>
+</body>
+</html>
